@@ -32,17 +32,7 @@ jobs:
           echo "PERF_TEAM_EMAILS=${{ secrets.PERF_TEAM_EMAILS }}" >> .env
           echo "LEADERSHIP_EMAILS=${{ secrets.LEADERSHIP_EMAILS }}" >> .env
           echo "DATE_PRESET=last_1dT" >> .env
-          echo "GDRIVE_FILE_ID=${{ secrets.GDRIVE_FILE_ID }}" >> .env
-
-      - name: Create credentials.json
-        env:
-          GOOGLE_CREDS: ${{ secrets.GOOGLE_CREDENTIALS }}
-        run: python -c "import base64,os; data=os.environ['GOOGLE_CREDS'].replace(' ','').replace('\n','').replace('\r',''); open('credentials.json','wb').write(base64.b64decode(data))"
-
-      - name: Create token.pickle
-        env:
-          GOOGLE_TOKEN: ${{ secrets.GOOGLE_TOKEN }}
-        run: python -c "import base64,os; data=os.environ['GOOGLE_TOKEN'].replace(' ','').replace('\n','').replace('\r',''); open('token.pickle','wb').write(base64.b64decode(data))"
+          echo "GDRIVE_FILE_ID=" >> .env
 
       - name: Run daily report
         run: python daily_report.py
