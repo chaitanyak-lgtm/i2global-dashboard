@@ -1,0 +1,44 @@
+name: i2Global Daily Dashboard
+
+on:
+  schedule:
+    - cron: '30 3 * * *'  # 9:00 AM IST = 3:30 AM UTC
+  workflow_dispatch:       # allows manual trigger too
+
+jobs:
+  send-dashboard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Create .env file
+        run: |
+          echo "WINDSOR_API_KEY=${{ secrets.WINDSOR_API_KEY }}" >> .env
+          echo "WINDSOR_ACCOUNT_IDS=${{ secrets.WINDSOR_ACCOUNT_IDS }}" >> .env
+          echo "MONGO_URI=${{ secrets.MONGO_URI }}" >> .env
+          echo "SMTP_HOST=smtp.gmail.com" >> .env
+          echo "SMTP_PORT=587" >> .env
+          echo "SMTP_USER=${{ secrets.SMTP_USER }}" >> .env
+          echo "SMTP_PASS=${{ secrets.SMTP_PASS }}" >> .env
+          echo "GD_TEAM_EMAILS=${{ secrets.GD_TEAM_EMAILS }}" >> .env
+          echo "PERF_TEAM_EMAILS=${{ secrets.PERF_TEAM_EMAILS }}" >> .env
+          echo "LEADERSHIP_EMAILS=${{ secrets.LEADERSHIP_EMAILS }}" >> .env
+          echo "DATE_PRESET=last_1dT" >> .env
+          echo "GDRIVE_FILE_ID=${{ secrets.GDRIVE_FILE_ID }}" >> .env
+
+      - name: Create credentials.json
+        run: echo '${{ secrets.GOOGLE_CREDENTIALS }}' > credentials.json
+
+      - name: Create token.pickle
+        run: echo '${{ secrets.GOOGLE_TOKEN }}' | base64 -d > token.pickle
+
+      - name: Run daily report
+        run: python daily_report.py
