@@ -45,16 +45,20 @@ def fetch_meta_ads():
               "fields":"campaign,ad_name,adset_name,spend,impressions,clicks,ctr,cpc,cpm,actions_lead,thumbnail_url,image_url,promoted_post_full_picture"}
     if WINDSOR_ACCOUNT_IDS:
         params["accounts"] = ",".join(WINDSOR_ACCOUNT_IDS)
-    try:
-        r = requests.get(url, params=params, timeout=30)
-        r.raise_for_status()
-        data = r.json()
-        if isinstance(data, dict): data = data.get("data",[])
-        print(f"  ✓ {len(data)} ads fetched")
-        return data or []
-    except Exception as e:
-        print(f"  ✗ Windsor error: {e}")
-        return []
+    for attempt in range(3):
+        try:
+            r = requests.get(url, params=params, timeout=60)
+            r.raise_for_status()
+            data = r.json()
+            if isinstance(data, dict): data = data.get("data",[])
+            print(f"  ✓ {len(data)} ads fetched")
+            return data or []
+        except Exception as e:
+            print(f"  ✗ Windsor attempt {attempt+1}/3 failed: {e}")
+            if attempt < 2:
+                import time; time.sleep(5)
+    print("  ✗ Windsor.ai unavailable — sending report without Meta Ads data")
+    return []
 
 def fetch_crm_data():
     if not MONGO_URI: return []
@@ -652,7 +656,7 @@ def build_dashboard(ads_raw, lob_data):
     <div style="background:#111118;border-radius:10px;padding:20px;font-size:13px;line-height:2;font-family:monospace;color:#9090aa">
       <span style="color:#c4b5fd;font-weight:700">📅 CREATIVE BRIEF — {today_str}</span><br><br>
       <span style="color:#22d3a0">✅ WHAT WORKED ({date_label}):</span><br>
-      → Best ad: {ads[0].get('ad_name','—') if ads else '—'} · CTR: {ads[0]['ctr_pct']:.2f}% · CPL: {ri(ads[0].get('cpl'))} · Leads: {ads[0].get('actions_lead') or 0}<br>
+      → Best ad: {ads[0].get('ad_name','—') if ads else '—'} · CTR: {f"{ads[0]['ctr_pct']:.2f}%" if ads else '—'} · CPL: {ri(ads[0].get('cpl')) if ads else '—'} · Leads: {ads[0].get('actions_lead') or 0 if ads else 0}<br>
       → Hook that worked: "Transformation / outcome-first headline"<br>
       → Format that worked: Lead Form + Split-screen static<br><br>
       <span style="color:#ff4f6a">❌ WHAT FAILED:</span><br>
