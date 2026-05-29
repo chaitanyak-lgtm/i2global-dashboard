@@ -2,8 +2,10 @@ name: i2Global Daily Dashboard
 
 on:
   schedule:
-    -  cron: '30 3 * * *'  # 9:00 AM IST
-  workflow_dispatch:
+    - cron: '30 3 * * *'  # 9:00 AM IST = 3:30 AM UTC
+  workflow_dispatch:       # manual trigger
+  push:
+    branches: [main]       # keeps workflow active
 
 jobs:
   send-dashboard:
