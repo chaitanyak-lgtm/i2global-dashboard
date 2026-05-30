@@ -1,0 +1,14 @@
+name: Keep Alive
+
+on:
+  schedule:
+    - cron: '0 3 * * *'  # runs 30 mins before main report
+  workflow_dispatch:
+
+jobs:
+  keep-alive:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Keep repository active
+        run: echo "Keeping repository active"
